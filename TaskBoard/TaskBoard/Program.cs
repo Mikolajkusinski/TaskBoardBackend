@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<DBContext>(option =>
+builder.Services.AddDbContext<TaskBoardContext>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("TaskBoardConnectionString"))
 );
 var app = builder.Build();
@@ -18,6 +18,15 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetService<TaskBoardContext>();
+
+var pendingMigrations = dbContext.Database.GetPendingMigrations();
+if (pendingMigrations.Any())
+{
+    dbContext.Database.Migrate();
 }
 
 app.Run();

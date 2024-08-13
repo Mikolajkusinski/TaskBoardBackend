@@ -2,16 +2,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TaskBoard.Entities;
 
-public class DBContext : DbContext
+public class TaskBoardContext : DbContext
 {
-    public DBContext(DbContextOptions<DBContext> options)
+    public TaskBoardContext(DbContextOptions<TaskBoardContext> options)
         : base(options) { }
 
     public DbSet<WorkItem> WorkItems { get; set; }
     public DbSet<Issue> Issues { get; set; }
     public DbSet<Epic> Epics { get; set; }
     public DbSet<Task> Tasks { get; set; }
-    public DbSet<Task> Tags { get; set; }
+    public DbSet<Tag> Tags { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Address> Addresses { get; set; }
@@ -29,7 +29,6 @@ public class DBContext : DbContext
 
         modelBuilder.Entity<WorkItem>(eb =>
         {
-            eb.Property(wi => wi.State).IsRequired();
             eb.Property(wi => wi.Area).HasColumnType("varchar(200)");
             eb.Property(wi => wi.IterationPath).HasColumnName("Iteration_Path");
             eb.Property(wi => wi.Priority).HasDefaultValue(1);
@@ -45,10 +44,14 @@ public class DBContext : DbContext
                         w.HasOne(wit => wit.WorkItem)
                             .WithMany()
                             .HasForeignKey(wit => wit.WorkItemId),
-                    wit => wit.HasKey(x => new { x.TagId, x.WorkItemId })
+                    wit =>
+                    {
+                        wit.HasKey(x => new { x.TagId, x.WorkItemId });
+                        wit.Property(x => x.PublicationDate).HasDefaultValueSql("getutcdate()");
+                    }
                 );
 
-            eb.HasOne(wi => wi.State).WithMany().HasForeignKey(wi => wi.StateId);
+            eb.HasOne(w => w.State).WithMany().HasForeignKey(w => w.StateId);
         });
 
         modelBuilder.Entity<Comment>(eb =>
@@ -57,6 +60,10 @@ public class DBContext : DbContext
             eb.Property(c => c.ModifiedDate)
                 .ValueGeneratedOnUpdate()
                 .HasDefaultValueSql("getutcdate()");
+            eb.HasOne(c => c.Author)
+                .WithMany(a => a.Comments)
+                .HasForeignKey(c => c.AuthorId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder
@@ -70,10 +77,5 @@ public class DBContext : DbContext
             .Property(wis => wis.Value)
             .IsRequired()
             .HasMaxLength(50);
-
-        modelBuilder
-            .Entity<WorkItemTag>()
-            .Property(w => w.PublicationDate)
-            .HasDefaultValueSql("getutcdate()");
     }
 }
