@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskBoard.Entities;
 
@@ -11,9 +12,11 @@ using TaskBoard.Entities;
 namespace TaskBoard.Migrations
 {
     [DbContext(typeof(TaskBoardContext))]
-    partial class TaskBoardContextModelSnapshot : ModelSnapshot
+    [Migration("20240813125909_TagDataSeed")]
+    partial class TagDataSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
